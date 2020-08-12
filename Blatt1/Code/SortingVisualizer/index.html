@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sorting and Searching Vis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #main {
+            position: relative;
+        }
+
+        .rect {
+            position: absolute;
+            display: block;
+            border: 1.5px solid black;
+            background: none;
+            text-align: center;
+            vertical-align: middle;
+            transition: left 1s ease-in-out, border 0.2s linear;
+        }
+
+        .verticalLine {
+            position: absolute;
+            display: block;
+            width: 1.5px;
+            height: 100%;
+            top: 0;
+            background: black;
+        }
+
+        .horizontalLine {
+            position: absolute;
+            display: block;
+            height: 1.5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: black;
+        }
+
+        .rectRead {
+            border-color: red;
+        }
+
+        .rectRead div {
+            background-color: red;
+        }
+
+        .rectWrite {
+            border-color: limegreen;
+        }
+
+        .rectWrite div {
+            background-color: limegreen;
+        }
+
+        .rectMove {
+            border-color: orange;
+        }
+
+        .rectMove div {
+            background-color: orange;
+        }
+
+        .smallIndex {
+            display: block;
+            position: absolute;
+            bottom: -20px;
+            width: 100%;
+        }
+
+        .smallGreen {
+            color: green;
+            left: 50%;
+        }
+
+        .arrow {
+            border: solid black;
+            border-width: 0 1.5px 1.5px 0;
+            display: block;
+            padding: 3px;
+            position: absolute;
+            top: 50%;
+        }
+
+        .arrowRight {
+            transform: rotate(-45deg) translateY(-50%) translateY(-1.5px);
+        }
+
+        .circle {
+            position: absolute;
+            display: block;
+            right: 10%;
+            top: 50%;
+            background-color: black;
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .bracket {
+            position: absolute;
+            display: block;
+            border: solid green;
+            width: 6px;
+            transition: opacity 0.5s linear, left 1s ease-in-out;
+        }
+
+        .opening {
+            border-top: 3px solid green;
+            border-bottom: 3px solid green;
+            border-right: 0 solid green;
+            border-left: 3px solid green;
+        }
+
+        .closing {
+            border-top: 3px solid green;
+            border-bottom: 3px solid green;
+            border-right: 3px solid green;
+            border-left: 0 solid green;
+        }
+
+        #result {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="step">Step: 0</div>
+    <div id="result">Searching...</div>
+    <div class="conatiner" id="main" role="main">
+    </div>
+
+    <script src="lists.js"></script>
+    <script>
+        //var l = new List([13, 23, 47, 48, 68, 12, 69, 73, 81, 83, 84, 85, 87, 90, 94], document.querySelector("#main"));
+        //var l = new List([12, 13, 23, 47, 48, 68, 69, 73, 81, 83, 84, 85, 87, 90, 94], document.querySelector("#main"));
+        var l = new List([6, 13, 8, 5, 14, 33, 95, 73, 55, 64], document.querySelector("#main"), true, false, false);
+        var i = 0;
+        l.iterator();
+        const step = document.querySelector("#step");
+        const result = document.querySelector("#result");
+        const find = 12;
+
+        var seqFound = false;
+        const seqSearch = () => {
+            if (l.hasNext() && !seqFound) {
+                step.innerHTML = "Step: " + (i + 1);
+                if (l.next() == find) {
+                    result.innerHTML = "Found " + find + " at index " + i;
+                    seqFound = true;
+                } else {
+
+                }
+                i++;
+            } else if (!seqFound) {
+                l.clearColor();
+                result.innerHTML = "Couldn't find " + find;
+            }
+        }
+
+        var start = 0;
+        var end = l.length();
+        var binFound = false;
+
+        const binSearch = () => {
+            if (binFound == false) {
+                if (i == 0) {
+                    step.innerHTML = "Step: " + (i + 1);
+                    l.addBracket(start, true);
+                    l.addBracket(end, false);
+                    i = -1;
+                } else {
+                    if (i == -1) {
+                        i++;
+                    }
+                    if (i % 2 == 0) {
+                        step.innerHTML = "Step: " + ((i / 2) + 1);
+                        if ((end - start) > 1) {
+                            const idx = start + Math.floor((end - start) / 2);
+                            const val = l.get(idx);
+                            if (val == find) {
+                                result.innerHTML = "Found " + find + " at index " + idx;
+                                binFound = true;
+                            } else if (val > find) {
+                                end = idx;
+                            } else {
+                                start = idx + 1;
+                            }
+                        } else {
+                            if (l.get(start) == find) {
+                                result.innerHTML = "Found " + find + " at index " + start;
+                                binFound = true;
+                            } else {
+                                result.innerHTML = "Couldn't find " + find;
+                            }
+                        }
+                    } else {
+                        l.clearColor();
+                        l.useBracket(start, 0);
+                        l.useBracket(end, 1);
+                    }
+                    i++;
+                }
+            }
+        }
+
+        var bubbleInnerI = 0;
+        var bubbleChanged = true;
+        const bubblesortInner = () => {
+            if (bubbleInnerI < l.length() - 1) {
+                if (l.get(bubbleInnerI) > l.get(bubbleInnerI + 1, true)) {
+                    l.swap(bubbleInnerI, bubbleInnerI + 1);
+                    bubbleChanged = true;
+                }
+                bubbleInnerI++;
+                setTimeout(bubblesortInner, 1000);
+            } else {
+                l.clearColor();
+            }
+        };
+        var bubbleOuterI = 0;
+        const bubblesortOuter = () => {
+            if (bubbleOuterI < l.length() && bubbleChanged) {
+                step.innerHTML = "Step: " + (bubbleOuterI + 1);
+                bubbleChanged = false;
+                bubbleInnerI = 0;
+                bubblesortInner();
+                bubbleOuterI++;
+            } else {
+                result.innerHTML = "Finished. List should be sorted.";
+            }
+        };
+    </script>
+</body>
+
+</html>
